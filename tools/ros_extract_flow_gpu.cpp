@@ -1,3 +1,4 @@
+#include <ros/ros.h>
 #include "dense_flow.h"
 #include "opencv2/gpu/gpu.hpp"
 using namespace cv::gpu;
