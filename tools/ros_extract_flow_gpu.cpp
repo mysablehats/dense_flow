@@ -15,7 +15,7 @@ using namespace cv::gpu;
 
 int main(int argc, char** argv){
 
-	ros::init(argc, argv, "df_publisher", ros::init_options::AnonymousName);
+	ros::init(argc, argv, "df_publisher");//, ros::init_options::AnonymousName);
 
 	ros::NodeHandle local_nh("~");
 
