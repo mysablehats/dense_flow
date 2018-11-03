@@ -1,8 +1,21 @@
 #include <ros/ros.h>
 //#include "dense_flow.h"
-#include "common.h"
+//#include "common.h"
 #include "opencv2/gpu/gpu.hpp"
 using namespace cv::gpu;
+
+
+void writeImages(vector<vector<uchar>> images, string name_temp){
+    for (int i = 0; i < images.size(); ++i){
+        char tmp[256];
+        sprintf(tmp, "_%05d.jpg", i+1);
+        FILE* fp;
+        fp = fopen((name_temp + tmp).c_str(), "wb");
+        fwrite( images[i].data(), 1, images[i].size(), fp);
+        fclose(fp);
+    }
+}
+
 
 void rosCalcDenseFlowGPU(string file_name, int bound, int type, int step, int dev_id,
                       vector<vector<uchar> >& output_x,
