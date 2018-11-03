@@ -1,0 +1,10 @@
+<launch>
+  <node name="ros_extract_gpu_NN" pkg="dense_flow" type="ros_extract_gpu" respawn="false" output="screen">
+    <!--param name="vidFile" value=""/>
+    <param name="vidFile" value=""/>
+    <param name="vidFile" value=""/>
+    <param name="vidFile" value=""/>
+    <param name="vidFile" value=""/>
+    <param name="filename" value="$(find create_video)/outputblah.avi"/ -->
+  </node>
+</launch>
