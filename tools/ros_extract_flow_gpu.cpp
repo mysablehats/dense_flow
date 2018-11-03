@@ -31,8 +31,8 @@ void rosCalcDenseFlowGPU(string file_name, int bound, int type, int step, int de
                       int new_width=0, int new_height=0);
 
 //INITIALIZE_EASYLOGGINGPP
-
-string_code hashit (std::string const& inString) {
+enum AlgType = {farn, tvl1, brox, unknown};
+AlgType hashit (std::string const& inString) {
     if (inString == "farn") return farn;
     if (inString == "tvl1") return tvl1;
     if (inString == "brox") return brox;
@@ -44,7 +44,7 @@ string xFlowFile;
 string yFlowFile;
 string imgFile;
 string type;
-enum AlgType = {farn, tvl1, brox, unknown};
+
 int bound;
 int device_id;
 int step;
