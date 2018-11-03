@@ -1,5 +1,7 @@
 cmake_minimum_required(VERSION 2.8)
-project( denseFlow )
+project( dense_flow )
+
+find_package(catkin REQUIRED)
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/Modules/")
 
