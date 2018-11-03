@@ -31,14 +31,17 @@ FIND_PACKAGE(PythonLibs REQUIRED)
 include_directories( ${OpenCV_INCLUDE_DIRS} include/ ${catkin_INCLUDE_DIRS})
 include_directories(SYSTEM ${Boost_INCLUDE_DIR} ${PYTHON_INCLUDE_DIR})
 
-add_library(denseflow src/common.cpp src/dense_flow.cpp src/dense_flow_gpu.cpp src/dense_warp_flow_gpu.cpp )
+add_library(denseflow src/common.cpp ) #src/dense_flow.cpp src/dense_flow_gpu.cpp src/dense_warp_flow_gpu.cpp )
 target_link_libraries( denseflow ${OpenCV_LIBS} )
 
-add_library(pydenseflow SHARED src/py_denseflow.cpp)
-target_link_libraries(pydenseflow
-        denseflow
-        ${Boost_LIBRARIES} ${PYTHON_LIBRARIES} ${OpenCV_LIBS}
-        )
+#add_library(denseflow src/common.cpp src/dense_flow.cpp src/dense_flow_gpu.cpp src/dense_warp_flow_gpu.cpp )
+#target_link_libraries( denseflow ${OpenCV_LIBS} )
+
+#add_library(pydenseflow SHARED src/py_denseflow.cpp)
+#target_link_libraries(pydenseflow
+        #denseflow
+        #${Boost_LIBRARIES} ${PYTHON_LIBRARIES} ${OpenCV_LIBS}
+        #)
 
 #add_executable( extract_cpu tools/extract_flow.cpp)
 #target_link_libraries( extract_cpu ${OpenCV_LIBS} denseflow)
