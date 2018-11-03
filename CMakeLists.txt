@@ -43,3 +43,9 @@ target_link_libraries( extract_gpu ${OpenCV_LIBS} denseflow)
 
 add_executable( extract_warp_gpu tools/extract_warp_flow_gpu.cpp)
 target_link_libraries( extract_warp_gpu ${OpenCV_LIBS}  denseflow)
+
+
+#### ros versions:
+
+add_executable( ros_extract_gpu tools/ros_extract_flow_gpu.cpp)
+target_link_libraries( ros_extract_gpu ${OpenCV_LIBS} denseflow)
