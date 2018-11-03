@@ -28,7 +28,7 @@ find_package( OpenCV REQUIRED )
 FIND_PACKAGE(Boost REQUIRED python)
 FIND_PACKAGE(PythonLibs REQUIRED)
 
-include_directories( ${OpenCV_INCLUDE_DIRS} include/ include/easylogging++/src include/CLUE/include ${catkin_INCLUDE_DIRS})
+include_directories( ${OpenCV_INCLUDE_DIRS} include/ ${catkin_INCLUDE_DIRS})
 include_directories(SYSTEM ${Boost_INCLUDE_DIR} ${PYTHON_INCLUDE_DIR})
 
 add_library(denseflow src/common.cpp src/dense_flow.cpp src/dense_flow_gpu.cpp src/dense_warp_flow_gpu.cpp )

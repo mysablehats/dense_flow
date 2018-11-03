@@ -1,3 +1,4 @@
+<?xml version="1.0"?>
 <launch>
   <node name="ros_extract_gpu_NN" pkg="dense_flow" type="ros_extract_gpu" respawn="false" output="screen">
     <param name="vidFile" value="/dense_flow/MWG_Bodenturnen_somersault_f_cm_np1_ri_bad_4.avi"/>
@@ -5,10 +6,10 @@
     <param name="yFlowFile" value="/dense_flow/flow_y"/>
     <param name="imgFile" value="/dense_flow/img"/>
     <param name="bound" value="20"/>
-    <param name="type" value="1"/>
+    <param name="type" value="tvl1"/> <!-- farn, tvl1, brox -->
 	  <param name="device_id" value="0"/>
     <param name="step" value="1"/>
     <param name="new_height" value="340"/>
-	<param name="new_width" value="256"/>
+	  <param name="new_width" value="256"/>
   </node>
 </launch>

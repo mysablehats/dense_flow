@@ -1,5 +1,6 @@
 #include <ros/ros.h>
-#include "dense_flow.h"
+//#include "dense_flow.h"
+#include "common.h"
 #include "opencv2/gpu/gpu.hpp"
 using namespace cv::gpu;
 
@@ -9,7 +10,14 @@ void rosCalcDenseFlowGPU(string file_name, int bound, int type, int step, int de
                       vector<vector<uchar> >& output_img,
                       int new_width=0, int new_height=0);
 
-INITIALIZE_EASYLOGGINGPP
+//INITIALIZE_EASYLOGGINGPP
+
+string_code hashit (std::string const& inString) {
+    if (inString == "farn") return farn;
+    if (inString == "tvl1") return tvl1;
+    if (inString == "brox") return brox;
+		else return unknown;
+}
 
 using namespace cv::gpu;
 
@@ -23,8 +31,9 @@ int main(int argc, char** argv){
 	string xFlowFile;
 	string yFlowFile;
 	string imgFile;
+	string type;
+	enum AlgType = {farn, tvl1, brox, unknown};
 	int bound;
-  int type;
   int device_id;
   int step;
   int new_height;
@@ -35,7 +44,7 @@ int main(int argc, char** argv){
 	local_nh.param("yFlowFile", yFlowFile, std::string("flow_y"));
 	local_nh.param("imgFile", imgFile, std::string("img"));
 	local_nh.param("bound", bound, 15);
-	local_nh.param("type", type, 1); //TODO:this should be a string and compare to tvl1, farn and brox
+	local_nh.param("type", type, std::string("farn")); //TODO:this should be a string and compare to tvl1, farn and brox
 	local_nh.param("device_id", device_id, 0);
 	local_nh.param("step", step, 1);
 	local_nh.param("new_height", new_height, 0);
@@ -59,9 +68,8 @@ void rosCalcDenseFlowGPU(string file_name, int bound, int type, int step, int de
                       vector<vector<uchar> >& output_img,
                       int new_width, int new_height){
     VideoCapture video_stream(file_name);
-    CHECK(video_stream.isOpened())<<"Cannot open video stream \""
-                                  <<file_name
-                                  <<"\" for optical flow extraction.";
+    if (!video_stream.isOpened())
+			ROS_ERROR("Cannot open video stream \"%s\" for optical flow extraction.", file_name.c_str());
 
     setDevice(dev_id);
     Mat capture_frame, capture_image, prev_image, capture_gray, prev_gray;
@@ -114,16 +122,16 @@ void rosCalcDenseFlowGPU(string file_name, int bound, int type, int step, int de
             d_frame_0.upload(prev_gray);
             d_frame_1.upload(capture_gray);
 
-            switch(type){
-                case 0: {
+            switch(hashit(type)){
+                case farn: {
                     alg_farn(d_frame_0, d_frame_1, d_flow_x, d_flow_y);
                     break;
                 }
-                case 1: {
+                case tvl1: {
                     alg_tvl1(d_frame_0, d_frame_1, d_flow_x, d_flow_y);
                     break;
                 }
-                case 2: {
+                case brox: {
                     GpuMat d_buf_0, d_buf_1;
                     d_frame_0.convertTo(d_buf_0, CV_32F, 1.0 / 255.0);
                     d_frame_1.convertTo(d_buf_1, CV_32F, 1.0 / 255.0);
@@ -131,7 +139,7 @@ void rosCalcDenseFlowGPU(string file_name, int bound, int type, int step, int de
                     break;
                 }
                 default:
-                    LOG(ERROR)<<"Unknown optical method: "<<type;
+                    ROS_ERROR()"Unknown optical method: %s",type.c_str());
             }
 
             //prefetch while gpu is working
