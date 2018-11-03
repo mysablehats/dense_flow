@@ -13,32 +13,32 @@ INITIALIZE_EASYLOGGINGPP
 using namespace cv::gpu;
 
 int main(int argc, char** argv){
-	// IO operation
-	const char* keys =
-		{
-			"{ f  | vidFile      | ex2.avi | filename of video }"
-			"{ x  | xFlowFile    | flow_x | filename of flow x component }"
-			"{ y  | yFlowFile    | flow_y | filename of flow x component }"
-			"{ i  | imgFile      | flow_i | filename of flow image}"
-			"{ b  | bound | 15 | specify the maximum of optical flow}"
-			"{ t  | type | 0 | specify the optical flow algorithm }"
-			"{ d  | device_id    | 0  | set gpu id}"
-			"{ s  | step  | 1 | specify the step for frame sampling}"
-			"{ w  | newWidth | 0 | output style}"
-			"{ h  | newHeight | 0 | output style}"
-		};
 
-	CommandLineParser cmd(argc, argv, keys);
-	string vidFile = cmd.get<string>("vidFile");
-	string xFlowFile = cmd.get<string>("xFlowFile");
-	string yFlowFile = cmd.get<string>("yFlowFile");
-	string imgFile = cmd.get<string>("imgFile");
-	int bound = cmd.get<int>("bound");
-    int type  = cmd.get<int>("type");
-    int device_id = cmd.get<int>("device_id");
-    int step = cmd.get<int>("step");
-    int new_height = cmd.get<int>("newHeight");
-    int new_width = cmd.get<int>("newWidth");
+	ros::init(argc, argv, "df_publisher", ros::init_options::AnonymousName);
+
+	ros::NodeHandle local_nh("~");
+
+	string vidFile;
+	string xFlowFile;
+	string yFlowFile;
+	string imgFile;
+	int bound;
+  int type;
+  int device_id;
+  int step;
+  int new_height;
+  int new_width;
+
+	local_nh.param("vidFile", vidFile, std::string("input.avi"));
+	local_nh.param("xFlowFile", xFlowFile, std::string("flow_x"));
+	local_nh.param("yFlowFile", yFlowFile, std::string("flow_y"));
+	local_nh.param("imgFile", imgFile, std::string("img"));
+	local_nh.param("bound", bound, 15);
+	local_nh.param("type", type, 1); //TODO:this should be a string and compare to tvl1, farn and brox
+	local_nh.param("device_id", device_id, 0);
+	local_nh.param("step", step, 1);
+	local_nh.param("new_height", new_height, 0);
+	local_nh.param("new_width", new_width, 0);
 
 	vector<vector<uchar> > out_vec_x, out_vec_y, out_vec_img;
 
