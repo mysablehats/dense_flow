@@ -19,6 +19,18 @@ string_code hashit (std::string const& inString) {
 		else return unknown;
 }
 
+string vidFile;
+string xFlowFile;
+string yFlowFile;
+string imgFile;
+string type;
+enum AlgType = {farn, tvl1, brox, unknown};
+int bound;
+int device_id;
+int step;
+int new_height;
+int new_width;
+
 using namespace cv::gpu;
 
 int main(int argc, char** argv){
@@ -26,18 +38,6 @@ int main(int argc, char** argv){
 	ros::init(argc, argv, "df_publisher");//, ros::init_options::AnonymousName);
 
 	ros::NodeHandle local_nh("~");
-
-	string vidFile;
-	string xFlowFile;
-	string yFlowFile;
-	string imgFile;
-	string type;
-	enum AlgType = {farn, tvl1, brox, unknown};
-	int bound;
-  int device_id;
-  int step;
-  int new_height;
-  int new_width;
 
 	local_nh.param("vidFile", vidFile, std::string("input.avi"));
 	local_nh.param("xFlowFile", xFlowFile, std::string("flow_x"));
