@@ -9,6 +9,7 @@
 #include <stdio.h>
 #include <iostream>
 using namespace cv::gpu;
+using namespace cv;
 
 
 void writeImages(vector<vector<uchar>> images, string name_temp){
