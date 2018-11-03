@@ -1,5 +1,4 @@
 #include "dense_flow.h"
-#include "utils.h"
 
 INITIALIZE_EASYLOGGINGPP
 

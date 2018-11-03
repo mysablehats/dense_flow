@@ -1,5 +1,5 @@
 #include "dense_flow.h"
-#include "utils.h"
+
 INITIALIZE_EASYLOGGINGPP
 
 int main(int argc, char** argv)
