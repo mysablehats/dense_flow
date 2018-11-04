@@ -72,9 +72,9 @@ int main(int argc, char** argv){
 	rosCalcDenseFlowGPU();
 
 	if(save_images){
-		writeImages(out_vec_x, xFlowFile);
-		writeImages(out_vec_y, yFlowFile);
-		writeImages(out_vec_img, imgFile);
+		writeImages(output_x, xFlowFile);
+		writeImages(output_y, yFlowFile);
+		writeImages(output_img, imgFile);
 	}
 
 	return 0;
