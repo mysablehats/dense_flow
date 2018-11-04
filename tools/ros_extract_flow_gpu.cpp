@@ -204,6 +204,7 @@ void rosCalcDenseFlowGPU(string file_name, int bound, string type, int step, int
             if (!hasnext){
                 return;
             }
+	    ros::spinOnce();
         }
 
 
