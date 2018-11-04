@@ -14,12 +14,10 @@
 using namespace cv::gpu;
 //using namespace cv;
 
-void rosCalcDenseFlowGPU(string file_name, int bound, string type, int step, int dev_id,
-                      vector<vector<uchar> >& output_x,
+void rosCalcDenseFlowGPU(vector<vector<uchar> >& output_x,
                       vector<vector<uchar> >& output_y,
                       vector<vector<uchar> >& output_img,
-                      int new_width, int new_height,
-		image_transport::Publisher pub,
+                      image_transport::Publisher pub,
 		image_transport::Publisher pubx,
 		image_transport::Publisher puby );
 
@@ -32,14 +30,14 @@ AlgType hashit (std::string const& inString) {
 		else return unknown;
 }
 
-string vidFile;
+string file_name;
 string xFlowFile;
 string yFlowFile;
 string imgFile;
 string type;
 
 int bound;
-int device_id;
+int dev_id;
 int step;
 int new_height;
 int new_width;
@@ -52,13 +50,13 @@ int main(int argc, char** argv){
 
 	ros::NodeHandle local_nh("~");
 
-	local_nh.param("vidFile", vidFile, std::string("input.avi"));
+	local_nh.param("vidFile", file_name, std::string("input.avi"));
 	local_nh.param("xFlowFile", xFlowFile, std::string("flow_x"));
 	local_nh.param("yFlowFile", yFlowFile, std::string("flow_y"));
 	local_nh.param("imgFile", imgFile, std::string("img"));
 	local_nh.param("bound", bound, 15);
 	local_nh.param("type", type, std::string("farn")); //TODO:this should be a string and compare to tvl1, farn and brox
-	local_nh.param("device_id", device_id, 0);
+	local_nh.param("device_id", dev_id, 0);
 	local_nh.param("step", step, 1);
 	local_nh.param("new_height", new_height, 0);
 	local_nh.param("new_width", new_width, 0);
@@ -70,8 +68,7 @@ int main(int argc, char** argv){
 
 	vector<vector<uchar> > out_vec_x, out_vec_y, out_vec_img;
 
-	rosCalcDenseFlowGPU(vidFile, bound, type, step, device_id,
-					 out_vec_x, out_vec_y, out_vec_img, new_width, new_height, pub, pubx, puby);
+	rosCalcDenseFlowGPU(out_vec_x, out_vec_y, out_vec_img, pub, pubx, puby);
 
 		writeImages(out_vec_x, xFlowFile);
 		writeImages(out_vec_y, yFlowFile);
@@ -80,12 +77,9 @@ int main(int argc, char** argv){
 	return 0;
 }
 
-void rosCalcDenseFlowGPU(string file_name, int bound, string type, int step, int dev_id,
-                      vector<vector<uchar> >& output_x,
+void rosCalcDenseFlowGPU(vector<vector<uchar> >& output_x,
                       vector<vector<uchar> >& output_y,
-                      vector<vector<uchar> >& output_img,
-                      int new_width, int new_height,
-											image_transport::Publisher pub,
+                      vector<vector<uchar> >& output_img, image_transport::Publisher pub,
 											image_transport::Publisher pubx,
 											image_transport::Publisher puby){
     VideoCapture video_stream(file_name);
