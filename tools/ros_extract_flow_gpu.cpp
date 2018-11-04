@@ -1,6 +1,6 @@
 #include <ros/ros.h>
 //#include "dense_flow.h"
-//#include "common.h"
+#include "common.h"
 #include "opencv2/gpu/gpu.hpp"
 #include "opencv2/video/tracking.hpp"
 #include "opencv2/imgproc/imgproc.hpp"
@@ -8,30 +8,18 @@
 
 #include <stdio.h>
 #include <iostream>
+#include "algtype.h"
 using namespace cv::gpu;
-using namespace cv;
+//using namespace cv;
 
-
-void writeImages(vector<vector<uchar>> images, string name_temp){
-    for (int i = 0; i < images.size(); ++i){
-        char tmp[256];
-        sprintf(tmp, "_%05d.jpg", i+1);
-        FILE* fp;
-        fp = fopen((name_temp + tmp).c_str(), "wb");
-        fwrite( images[i].data(), 1, images[i].size(), fp);
-        fclose(fp);
-    }
-}
-
-
-void rosCalcDenseFlowGPU(string file_name, int bound, int type, int step, int dev_id,
+void rosCalcDenseFlowGPU(string file_name, int bound, string type, int step, int dev_id,
                       vector<vector<uchar> >& output_x,
                       vector<vector<uchar> >& output_y,
                       vector<vector<uchar> >& output_img,
                       int new_width=0, int new_height=0);
 
 //INITIALIZE_EASYLOGGINGPP
-enum AlgType = {farn, tvl1, brox, unknown};
+//enum AlgType = {farn, tvl1, brox, unknown};
 AlgType hashit (std::string const& inString) {
     if (inString == "farn") return farn;
     if (inString == "tvl1") return tvl1;
@@ -82,7 +70,7 @@ int main(int argc, char** argv){
 	return 0;
 }
 
-void rosCalcDenseFlowGPU(string file_name, int bound, int type, int step, int dev_id,
+void rosCalcDenseFlowGPU(string file_name, int bound, string type, int step, int dev_id,
                       vector<vector<uchar> >& output_x,
                       vector<vector<uchar> >& output_y,
                       vector<vector<uchar> >& output_img,
@@ -159,7 +147,7 @@ void rosCalcDenseFlowGPU(string file_name, int bound, int type, int step, int de
                     break;
                 }
                 default:
-                    ROS_ERROR()"Unknown optical method: %s",type.c_str());
+                    ROS_ERROR("Unknown optical method: %s",type.c_str());
             }
 
             //prefetch while gpu is working
