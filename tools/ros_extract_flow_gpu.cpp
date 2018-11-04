@@ -2,12 +2,12 @@
 //#include "dense_flow.h"
 #include "common.h"
 #include "opencv2/gpu/gpu.hpp"
-#include "opencv2/video/tracking.hpp"
-#include "opencv2/imgproc/imgproc.hpp"
+//#include "opencv2/video/tracking.hpp"
+//#include "opencv2/imgproc/imgproc.hpp"
 #include "opencv2/highgui/highgui.hpp"
 
-#include <stdio.h>
-#include <iostream>
+//#include <stdio.h>
+//#include <iostream>
 #include "algtype.h"
 using namespace cv::gpu;
 //using namespace cv;
