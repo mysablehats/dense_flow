@@ -18,7 +18,10 @@ void rosCalcDenseFlowGPU(string file_name, int bound, string type, int step, int
                       vector<vector<uchar> >& output_x,
                       vector<vector<uchar> >& output_y,
                       vector<vector<uchar> >& output_img,
-                      int new_width=0, int new_height=0);
+                      int new_width, int new_height,
+		image_transport::Publisher pub,
+		image_transport::Publisher pubx,
+		image_transport::Publisher puby );
 
 //INITIALIZE_EASYLOGGINGPP
 //enum AlgType = {farn, tvl1, brox, unknown};
@@ -68,7 +71,7 @@ int main(int argc, char** argv){
 	vector<vector<uchar> > out_vec_x, out_vec_y, out_vec_img;
 
 	rosCalcDenseFlowGPU(vidFile, bound, type, step, device_id,
-					 out_vec_x, out_vec_y, out_vec_img, new_width, new_height, pub);
+					 out_vec_x, out_vec_y, out_vec_img, new_width, new_height, pub, pubx, puby);
 
 		writeImages(out_vec_x, xFlowFile);
 		writeImages(out_vec_y, yFlowFile);

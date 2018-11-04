@@ -5,7 +5,11 @@ project( dense_flow )
 catkin_package()
 
 find_package(catkin REQUIRED COMPONENTS
- roscpp
+    cv_bridge
+    image_transport
+    message_filters
+    message_generation
+    roscpp
  )
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/Modules/")
