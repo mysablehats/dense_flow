@@ -14,12 +14,7 @@
 using namespace cv::gpu;
 //using namespace cv;
 
-void rosCalcDenseFlowGPU(vector<vector<uchar> >& output_x,
-                      vector<vector<uchar> >& output_y,
-                      vector<vector<uchar> >& output_img,
-                      image_transport::Publisher pub,
-		image_transport::Publisher pubx,
-		image_transport::Publisher puby );
+void rosCalcDenseFlowGPU();
 
 //INITIALIZE_EASYLOGGINGPP
 //enum AlgType = {farn, tvl1, brox, unknown};
@@ -41,8 +36,15 @@ int dev_id;
 int step;
 int new_height;
 int new_width;
+bool save_images;
+
+image_transport::Publisher pub;
+image_transport::Publisher pubx;
+image_transport::Publisher puby;
 
 using namespace cv::gpu;
+
+vector<vector<uchar> > output_x, output_y, output_img;
 
 int main(int argc, char** argv){
 
@@ -60,28 +62,25 @@ int main(int argc, char** argv){
 	local_nh.param("step", step, 1);
 	local_nh.param("new_height", new_height, 0);
 	local_nh.param("new_width", new_width, 0);
+	local_nh.param("save_images", save_images, true);
 
 	image_transport::ImageTransport it(local_nh);
-	image_transport::Publisher pub = it.advertise("camera/image", 1);
-	image_transport::Publisher pubx = it.advertise("camera/flowx", 1);
-	image_transport::Publisher puby = it.advertise("camera/flowy", 1);
+	pub = it.advertise("camera/image", 1);
+	pubx = it.advertise("camera/flowx", 1);
+	puby = it.advertise("camera/flowy", 1);
 
-	vector<vector<uchar> > out_vec_x, out_vec_y, out_vec_img;
+	rosCalcDenseFlowGPU();
 
-	rosCalcDenseFlowGPU(out_vec_x, out_vec_y, out_vec_img, pub, pubx, puby);
-
+	if(save_images){
 		writeImages(out_vec_x, xFlowFile);
 		writeImages(out_vec_y, yFlowFile);
 		writeImages(out_vec_img, imgFile);
+	}
 
 	return 0;
 }
 
-void rosCalcDenseFlowGPU(vector<vector<uchar> >& output_x,
-                      vector<vector<uchar> >& output_y,
-                      vector<vector<uchar> >& output_img, image_transport::Publisher pub,
-											image_transport::Publisher pubx,
-											image_transport::Publisher puby){
+void rosCalcDenseFlowGPU(){
     VideoCapture video_stream(file_name);
     if (!video_stream.isOpened())
 			ROS_ERROR("Cannot open video stream \"%s\" for optical flow extraction.", file_name.c_str());
@@ -183,15 +182,15 @@ void rosCalcDenseFlowGPU(vector<vector<uchar> >& output_x,
 						//	 ros::spinOnce();
 							// loop_rate.sleep();
 						 //}
+						if (save_images){
+	            vector<uchar> str_x, str_y, str_img;
+	            encodeFlowMap(flow_x, flow_y, str_x, str_y, bound);
+	            imencode(".jpg", capture_image, str_img);
 
-            vector<uchar> str_x, str_y, str_img;
-            encodeFlowMap(flow_x, flow_y, str_x, str_y, bound);
-            imencode(".jpg", capture_image, str_img);
-
-            output_x.push_back(str_x);
-            output_y.push_back(str_y);
-            output_img.push_back(str_img);
-
+	            output_x.push_back(str_x);
+	            output_y.push_back(str_y);
+	            output_img.push_back(str_img);
+						}
             std::swap(prev_gray, capture_gray);
             std::swap(prev_image, capture_image);
 

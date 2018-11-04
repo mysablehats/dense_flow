@@ -11,5 +11,6 @@
     <param name="step" value="1"/>
     <param name="new_height" value="340"/>
 	  <param name="new_width" value="256"/>
+    <param name="save_images" value="true"/>
   </node>
 </launch>
