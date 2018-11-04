@@ -4,7 +4,9 @@
 #include "opencv2/gpu/gpu.hpp"
 //#include "opencv2/video/tracking.hpp"
 //#include "opencv2/imgproc/imgproc.hpp"
-#include "opencv2/highgui/highgui.hpp"
+#include <image_transport/image_transport.h>
+#include <opencv2/highgui/highgui.hpp>
+#include <cv_bridge/cv_bridge.h>
 
 //#include <stdio.h>
 //#include <iostream>
@@ -58,10 +60,15 @@ int main(int argc, char** argv){
 	local_nh.param("new_height", new_height, 0);
 	local_nh.param("new_width", new_width, 0);
 
+	image_transport::ImageTransport it(local_nh);
+	image_transport::Publisher pub = it.advertise("camera/image", 1);
+	image_transport::Publisher pubx = it.advertise("camera/flowx", 1);
+	image_transport::Publisher puby = it.advertise("camera/flowy", 1);
+
 	vector<vector<uchar> > out_vec_x, out_vec_y, out_vec_img;
 
 	rosCalcDenseFlowGPU(vidFile, bound, type, step, device_id,
-					 out_vec_x, out_vec_y, out_vec_img, new_width, new_height);
+					 out_vec_x, out_vec_y, out_vec_img, new_width, new_height, pub);
 
 		writeImages(out_vec_x, xFlowFile);
 		writeImages(out_vec_y, yFlowFile);
@@ -74,7 +81,10 @@ void rosCalcDenseFlowGPU(string file_name, int bound, string type, int step, int
                       vector<vector<uchar> >& output_x,
                       vector<vector<uchar> >& output_y,
                       vector<vector<uchar> >& output_img,
-                      int new_width, int new_height){
+                      int new_width, int new_height,
+											image_transport::Publisher pub,
+											image_transport::Publisher pubx,
+											image_transport::Publisher puby){
     VideoCapture video_stream(file_name);
     if (!video_stream.isOpened())
 			ROS_ERROR("Cannot open video stream \"%s\" for optical flow extraction.", file_name.c_str());
@@ -162,6 +172,20 @@ void rosCalcDenseFlowGPU(string file_name, int bound, string type, int step, int
             //get back flow map
             d_flow_x.download(flow_x);
             d_flow_y.download(flow_y);
+
+						//this is probably wrong and super slow
+						sensor_msgs::ImagePtr msg = cv_bridge::CvImage(std_msgs::Header(), "bgr8", capture_image).toImageMsg();
+						pub.publish(msg);
+						sensor_msgs::ImagePtr msgx = cv_bridge::CvImage(std_msgs::Header(), "mono8", flow_x).toImageMsg();
+						pubx.publish(msgx);
+						sensor_msgs::ImagePtr msgy = cv_bridge::CvImage(std_msgs::Header(), "mono8", flow_y).toImageMsg();
+						puby.publish(msgy);
+						 //ros::Rate loop_rate(5);
+						 //while (nh.ok()) {
+							 //pub.publish(msg);
+						//	 ros::spinOnce();
+							// loop_rate.sleep();
+						 //}
 
             vector<uchar> str_x, str_y, str_img;
             encodeFlowMap(flow_x, flow_y, str_x, str_y, bound);
