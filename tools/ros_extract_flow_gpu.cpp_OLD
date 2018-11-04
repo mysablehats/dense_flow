@@ -14,7 +14,7 @@
 using namespace cv::gpu;
 //using namespace cv;
 
-void rosCalcDenseFlowGPU(const sensor_msgs::ImageConstPtr& msg);
+void rosCalcDenseFlowGPU();
 
 //INITIALIZE_EASYLOGGINGPP
 //enum AlgType = {farn, tvl1, brox, unknown};
@@ -46,22 +46,6 @@ using namespace cv::gpu;
 
 vector<vector<uchar> > output_x, output_y, output_img;
 
-setDevice(dev_id);
-Mat capture_frame, capture_image, prev_image, capture_gray, prev_gray;
-Mat flow_x, flow_y;
-Size new_size;
-
-GpuMat d_frame_0, d_frame_1;
-GpuMat d_flow_x, d_flow_y;
-
-FarnebackOpticalFlow alg_farn;
-OpticalFlowDual_TVL1_GPU alg_tvl1;
-BroxOpticalFlow alg_brox(0.197f, 50.0f, 0.8f, 10, 77, 10);
-
-bool do_resize;
-
-bool initialized = false;
-
 int main(int argc, char** argv){
 
 	ros::init(argc, argv, "df_publisher");//, ros::init_options::AnonymousName);
@@ -85,10 +69,7 @@ int main(int argc, char** argv){
 	pubx = it.advertise("camera/flowx", 1);
 	puby = it.advertise("camera/flowy", 1);
 
-	image_transport::Subscriber sub = it.subscribe("videofiles/image", 1, rosCalcDenseFlowGPU); //probably i should go for a different nodehandle here without the ~ or use the remap thing
-	new_size = new_size(new_width, new_height);
-	do_resize = (new_height > 0) && (new_width > 0);
-	ros::spin();
+	rosCalcDenseFlowGPU();
 
 	if(save_images){
 		writeImages(output_x, xFlowFile);
@@ -99,10 +80,32 @@ int main(int argc, char** argv){
 	return 0;
 }
 
-void rosCalcDenseFlowGPU(const sensor_msgs::ImageConstPtr& msg){
+void rosCalcDenseFlowGPU(){
+    VideoCapture video_stream(file_name);
+    if (!video_stream.isOpened())
+			ROS_ERROR("Cannot open video stream \"%s\" for optical flow extraction.", file_name.c_str());
+
+    setDevice(dev_id);
+    Mat capture_frame, capture_image, prev_image, capture_gray, prev_gray;
+    Mat flow_x, flow_y;
+    Size new_size(new_width, new_height);
+
+    GpuMat d_frame_0, d_frame_1;
+    GpuMat d_flow_x, d_flow_y;
+
+    FarnebackOpticalFlow alg_farn;
+    OpticalFlowDual_TVL1_GPU alg_tvl1;
+    BroxOpticalFlow alg_brox(0.197f, 50.0f, 0.8f, 10, 77, 10);
+
+    bool do_resize = (new_height > 0) && (new_width > 0);
+
+    bool initialized = false;
+    int cnt = 0;
+    while(true){
+
+        //build mats for the first frame
         if (!initialized){
-					cv::imshow("view", cv_bridge::toCvShare(msg, "bgr8")->capture_frame);
-           //video_stream >> capture_frame;
+           video_stream >> capture_frame;
            if (capture_frame.empty()) return; // read frames until end
 
             if (!do_resize){
@@ -118,10 +121,11 @@ void rosCalcDenseFlowGPU(const sensor_msgs::ImageConstPtr& msg){
             }
             cvtColor(prev_image, prev_gray, CV_BGR2GRAY);
             initialized = true;
-            //for(int s = 0; s < step; ++s){
-            //    video_stream >> capture_frame;
-            //    if (capture_frame.empty()) return; // read frames until end
-            //}
+            for(int s = 0; s < step; ++s){
+                video_stream >> capture_frame;
+		cnt ++;
+                if (capture_frame.empty()) return; // read frames until end
+            }
         }else {
             if (!do_resize)
                 capture_frame.copyTo(capture_image);
@@ -152,15 +156,14 @@ void rosCalcDenseFlowGPU(const sensor_msgs::ImageConstPtr& msg){
                     ROS_ERROR("Unknown optical method: %s",type.c_str());
             }
 
-						//TO enable these guys I will have to figure out how the queue works!
             //prefetch while gpu is working
-            //bool hasnext = true;
-            //for(int s = 0; s < step; ++s){
-              //  video_stream >> capture_frame;
-						cv::imshow("view", cv_bridge::toCvShare(msg, "bgr8")->capture_frame);
-            hasnext = !capture_frame.empty();
+            bool hasnext = true;
+            for(int s = 0; s < step; ++s){
+                video_stream >> capture_frame;
+		cnt ++;
+                hasnext = !capture_frame.empty();
                 // read frames until end
-            //}
+            }
 
             //get back flow map
             d_flow_x.download(flow_x);
