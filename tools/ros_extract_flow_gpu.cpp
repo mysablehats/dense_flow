@@ -159,7 +159,7 @@ void rosCalcDenseFlowGPU(const sensor_msgs::ImageConstPtr& msg){
             //bool hasnext = true;
             //for(int s = 0; s < step; ++s){
               //  video_stream >> cv_ptr->image;
-						cv::imshow("view", cv_bridge::toCvShare(msg, "bgr8")->cv_ptr->image);
+						cv_ptr = cv_bridge::toCvCopy(msg, sensor_msgs::image_encodings::BGR8);
             hasnext = !cv_ptr->image.empty();
                 // read frames until end
             //}
@@ -196,7 +196,7 @@ void rosCalcDenseFlowGPU(const sensor_msgs::ImageConstPtr& msg){
             if (!hasnext){
                 return;
             }
-	    ros::spinOnce();
+	    //ros::spinOnce();
         }
 
 
