@@ -46,8 +46,8 @@ using namespace cv::gpu;
 
 vector<vector<uchar> > output_x, output_y, output_img;
 
-setDevice(dev_id);
-Mat capture_frame, capture_image, prev_image, capture_gray, prev_gray;
+cv_bridge::CvImagePtr cv_ptr;
+Mat capture_image, prev_image, capture_gray, prev_gray;
 Mat flow_x, flow_y;
 Size new_size;
 
@@ -86,8 +86,10 @@ int main(int argc, char** argv){
 	puby = it.advertise("camera/flowy", 1);
 
 	image_transport::Subscriber sub = it.subscribe("videofiles/image", 1, rosCalcDenseFlowGPU); //probably i should go for a different nodehandle here without the ~ or use the remap thing
-	new_size = new_size(new_width, new_height);
+	new_size.width = new_width;
+	new_size.height = new_height;
 	do_resize = (new_height > 0) && (new_width > 0);
+	setDevice(dev_id);
 	ros::spin();
 
 	if(save_images){
@@ -101,32 +103,32 @@ int main(int argc, char** argv){
 
 void rosCalcDenseFlowGPU(const sensor_msgs::ImageConstPtr& msg){
         if (!initialized){
-					cv::imshow("view", cv_bridge::toCvShare(msg, "bgr8")->capture_frame);
+						cv_ptr = cv_bridge::toCvCopy(msg, sensor_msgs::image_encodings::BGR8);
            //video_stream >> capture_frame;
-           if (capture_frame.empty()) return; // read frames until end
+           if (cv_ptr->image.empty()) return; // read frames until end
 
             if (!do_resize){
-                initializeMats(capture_frame, capture_image, capture_gray,
+                initializeMats(cv_ptr->image, capture_image, capture_gray,
                            prev_image, prev_gray);
-                capture_frame.copyTo(prev_image);
+                cv_ptr->image.copyTo(prev_image);
             }else{
                 capture_image.create(new_size, CV_8UC3);
                 capture_gray.create(new_size, CV_8UC1);
                 prev_image.create(new_size, CV_8UC3);
                 prev_gray.create(new_size, CV_8UC1);
-                cv::resize(capture_frame, prev_image, new_size);
+                cv::resize(cv_ptr->image, prev_image, new_size);
             }
             cvtColor(prev_image, prev_gray, CV_BGR2GRAY);
             initialized = true;
             //for(int s = 0; s < step; ++s){
-            //    video_stream >> capture_frame;
-            //    if (capture_frame.empty()) return; // read frames until end
+            //    video_stream >> cv_ptr->image;
+            //    if (cv_ptr->image.empty()) return; // read frames until end
             //}
         }else {
             if (!do_resize)
-                capture_frame.copyTo(capture_image);
+                cv_ptr->image.copyTo(capture_image);
             else
-                cv::resize(capture_frame, capture_image, new_size);
+                cv::resize(cv_ptr->image, capture_image, new_size);
 
             cvtColor(capture_image, capture_gray, CV_BGR2GRAY);
             d_frame_0.upload(prev_gray);
@@ -156,9 +158,9 @@ void rosCalcDenseFlowGPU(const sensor_msgs::ImageConstPtr& msg){
             //prefetch while gpu is working
             //bool hasnext = true;
             //for(int s = 0; s < step; ++s){
-              //  video_stream >> capture_frame;
-						cv::imshow("view", cv_bridge::toCvShare(msg, "bgr8")->capture_frame);
-            hasnext = !capture_frame.empty();
+              //  video_stream >> cv_ptr->image;
+						cv::imshow("view", cv_bridge::toCvShare(msg, "bgr8")->cv_ptr->image);
+            hasnext = !cv_ptr->image.empty();
                 // read frames until end
             //}
 
