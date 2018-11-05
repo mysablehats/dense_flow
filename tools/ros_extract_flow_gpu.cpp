@@ -200,7 +200,7 @@ void rosCalcDenseFlowGPU(const sensor_msgs::ImageConstPtr& msg){
   						pub.publish(msgi);
               ROS_INFO("got this far.");
               //convertFlowToImage(flow_x, flow_y, flow_img_x, flow_img_y,
-                                 -bound, bound);
+//                                 -bound, bound);
               ROS_INFO("did this!");
 
   						sensor_msgs::ImagePtr msgx = cv_bridge::CvImage(std_msgs::Header(), "mono8", flow_x).toImageMsg();
