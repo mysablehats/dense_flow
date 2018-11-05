@@ -199,6 +199,16 @@ void rosCalcDenseFlowGPU(const sensor_msgs::ImageConstPtr& msg){
   						sensor_msgs::ImagePtr msgi = cv_bridge::CvImage(std_msgs::Header(), "bgr8", capture_image).toImageMsg();
   						pub.publish(msgi);
               ROS_INFO("got this far.");
+              #define CAST(v, L, H) ((v) > (H) ? 255 : (v) < (L) ? 0 : cvRound(255*((v) - (L))/((H)-(L))))
+                  for (int i = 0; i < flow_x.rows; ++i) {
+                      for (int j = 0; j < flow_y.cols; ++j) {
+                          float x = flow_x.at<float>(i,j);
+                          float y = flow_y.at<float>(i,j);
+                          flow_img_x.at<uchar>(i,j) = CAST(x, -bound, bound);
+                          flow_img_y.at<uchar>(i,j) = CAST(y, -bound, bound);
+                      }
+                  }
+              #undef CAST
               //convertFlowToImage(flow_x, flow_y, flow_img_x, flow_img_y,
 //                                 -bound, bound);
               ROS_INFO("did this!");
