@@ -132,7 +132,11 @@ void rosCalcDenseFlowGPU(const sensor_msgs::ImageConstPtr& msg){
             //    video_stream >> cv_ptr->image;
             //    if (cv_ptr->image.empty()) return; // read frames until end
             //}
+
+            Mat flow_img_x(flow_x.size(), CV_8UC1);
+            Mat flow_img_y(flow_y.size(), CV_8UC1);
         }else {
+            cv_ptr = cv_bridge::toCvCopy(msg, sensor_msgs::image_encodings::BGR8);
             if (!do_resize)
                 cv_ptr->image.copyTo(capture_image);
             else
@@ -167,7 +171,7 @@ void rosCalcDenseFlowGPU(const sensor_msgs::ImageConstPtr& msg){
             //bool hasnext = true;
             //for(int s = 0; s < step; ++s){
               //  video_stream >> cv_ptr->image;
-						cv_ptr = cv_bridge::toCvCopy(msg, sensor_msgs::image_encodings::BGR8);
+						//cv_ptr = cv_bridge::toCvCopy(msg, sensor_msgs::image_encodings::BGR8);
             bool hasnext = !cv_ptr->image.empty();
                 // read frames until end
             //}
@@ -179,9 +183,13 @@ void rosCalcDenseFlowGPU(const sensor_msgs::ImageConstPtr& msg){
 						//this is probably wrong and super slow
 						sensor_msgs::ImagePtr msgi = cv_bridge::CvImage(std_msgs::Header(), "bgr8", capture_image).toImageMsg();
 						pub.publish(msgi);
-						sensor_msgs::ImagePtr msgx = cv_bridge::CvImage(std_msgs::Header(), "bgr8", flow_x).toImageMsg();
+
+            convertFlowToImage(flow_x, flow_y, flow_img_x, flow_img_y,
+                               -bound, bound);
+
+						sensor_msgs::ImagePtr msgx = cv_bridge::CvImage(std_msgs::Header(), "mono8", flow_x).toImageMsg();
 						pubx.publish(msgx);
-						sensor_msgs::ImagePtr msgy = cv_bridge::CvImage(std_msgs::Header(), "bgr8", flow_y).toImageMsg();
+						sensor_msgs::ImagePtr msgy = cv_bridge::CvImage(std_msgs::Header(), "mono8", flow_y).toImageMsg();
 						puby.publish(msgy);
 						 //ros::Rate loop_rate(5);
 						 //while (nh.ok()) {
