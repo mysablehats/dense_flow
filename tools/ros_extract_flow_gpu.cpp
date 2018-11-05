@@ -112,6 +112,8 @@ void rosCalcDenseFlowGPU(const sensor_msgs::ImageConstPtr& msg){
 	//ROS_INFO_STREAM("Callback was called.");
         if (!initialized){
 	ROS_INFO("Initializing...");
+          try{
+
 						cv_ptr = cv_bridge::toCvCopy(msg, sensor_msgs::image_encodings::BGR8);
            //video_stream >> capture_frame;
            if (cv_ptr->image.empty()) return; // read frames until end
@@ -136,7 +138,13 @@ void rosCalcDenseFlowGPU(const sensor_msgs::ImageConstPtr& msg){
 
             //Mat flow_img_x(flow_x.size(), CV_8UC1);
             //Mat flow_img_y(flow_y.size(), CV_8UC1);
+          }
+          catch(const std::exception &e) {
+              ROS_ERROR("ERROR while initializing: %s", e.what());
+              std::cout << e.what() << "\n";
+          }
         }else {
+          try {
             cv_ptr = cv_bridge::toCvCopy(msg, sensor_msgs::image_encodings::BGR8);
             if (!do_resize)
                 cv_ptr->image.copyTo(capture_image);
@@ -215,6 +223,11 @@ void rosCalcDenseFlowGPU(const sensor_msgs::ImageConstPtr& msg){
             }
 	    //ros::spinOnce();
         }
+      }
+    catch(const std::exception &e) {
+        ROS_ERROR("ERROR while running loop: %s", e.what());
+        std::cout << e.what() << "\n";
+    }
 
 
     }
