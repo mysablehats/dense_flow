@@ -66,6 +66,7 @@ int main(int argc, char** argv){
 
 	ros::init(argc, argv, "df_publisher");//, ros::init_options::AnonymousName);
 
+	ros::NodeHandle nh;
 	ros::NodeHandle local_nh("~");
 
 	local_nh.param("vidFile", file_name, std::string("input.avi"));
@@ -80,16 +81,18 @@ int main(int argc, char** argv){
 	local_nh.param("new_width", new_width, 0);
 	local_nh.param("save_images", save_images, true);
 
-	image_transport::ImageTransport it(local_nh);
-	pub = it.advertise("camera/image", 1);
-	pubx = it.advertise("camera/flowx", 1);
-	puby = it.advertise("camera/flowy", 1);
+	image_transport::ImageTransport local_it(local_nh);
+	pub = local_it.advertise("camera/image", 1);
+	pubx = local_it.advertise("camera/flowx", 1);
+	puby = local_it.advertise("camera/flowy", 1);
 
+	image_transport::ImageTransport it(nh);
 	image_transport::Subscriber sub = it.subscribe("videofiles/image", 1, rosCalcDenseFlowGPU); //probably i should go for a different nodehandle here without the ~ or use the remap thing
 	new_size.width = new_width;
 	new_size.height = new_height;
 	do_resize = (new_height > 0) && (new_width > 0);
 	setDevice(dev_id);
+	ROS_INFO("Defined everything ready to acquire.");
 	ros::spin();
 
 	if(save_images){
@@ -102,7 +105,9 @@ int main(int argc, char** argv){
 }
 
 void rosCalcDenseFlowGPU(const sensor_msgs::ImageConstPtr& msg){
+	ROS_INFO("Callback was called.");
         if (!initialized){
+	ROS_INFO("Initializing...");
 						cv_ptr = cv_bridge::toCvCopy(msg, sensor_msgs::image_encodings::BGR8);
            //video_stream >> capture_frame;
            if (cv_ptr->image.empty()) return; // read frames until end
