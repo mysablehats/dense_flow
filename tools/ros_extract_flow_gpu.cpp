@@ -110,124 +110,129 @@ int main(int argc, char** argv){
 
 void rosCalcDenseFlowGPU(const sensor_msgs::ImageConstPtr& msg){
 	//ROS_INFO_STREAM("Callback was called.");
-        if (!initialized){
-	ROS_INFO("Initializing...");
-          try{
+        if (!initialized)
+        {
+        	ROS_INFO("Initializing...");
+          try
+            {
+              cv_ptr = cv_bridge::toCvCopy(msg, sensor_msgs::image_encodings::BGR8);
+             //video_stream >> capture_frame;
+             if (cv_ptr->image.empty()) return; // read frames until end
 
-						cv_ptr = cv_bridge::toCvCopy(msg, sensor_msgs::image_encodings::BGR8);
-           //video_stream >> capture_frame;
-           if (cv_ptr->image.empty()) return; // read frames until end
+              if (!do_resize){
+                  initializeMats(cv_ptr->image, capture_image, capture_gray,
+                             prev_image, prev_gray);
+                  cv_ptr->image.copyTo(prev_image);
+              }else{
+                  capture_image.create(new_size, CV_8UC3);
+                  capture_gray.create(new_size, CV_8UC1);
+                  prev_image.create(new_size, CV_8UC3);
+                  prev_gray.create(new_size, CV_8UC1);
+                  cv::resize(cv_ptr->image, prev_image, new_size);
+              }
+              cvtColor(prev_image, prev_gray, CV_BGR2GRAY);
+              initialized = true;
+              //for(int s = 0; s < step; ++s){
+              //    video_stream >> cv_ptr->image;
+              //    if (cv_ptr->image.empty()) return; // read frames until end
+              //}
 
-            if (!do_resize){
-                initializeMats(cv_ptr->image, capture_image, capture_gray,
-                           prev_image, prev_gray);
-                cv_ptr->image.copyTo(prev_image);
-            }else{
-                capture_image.create(new_size, CV_8UC3);
-                capture_gray.create(new_size, CV_8UC1);
-                prev_image.create(new_size, CV_8UC3);
-                prev_gray.create(new_size, CV_8UC1);
-                cv::resize(cv_ptr->image, prev_image, new_size);
+              //Mat flow_img_x(flow_x.size(), CV_8UC1);
+              //Mat flow_img_y(flow_y.size(), CV_8UC1);
             }
-            cvtColor(prev_image, prev_gray, CV_BGR2GRAY);
-            initialized = true;
-            //for(int s = 0; s < step; ++s){
-            //    video_stream >> cv_ptr->image;
-            //    if (cv_ptr->image.empty()) return; // read frames until end
-            //}
-
-            //Mat flow_img_x(flow_x.size(), CV_8UC1);
-            //Mat flow_img_y(flow_y.size(), CV_8UC1);
-          }
-          catch(const std::exception &e) {
+        catch(const std::exception &e)
+            {
               ROS_ERROR("ERROR while initializing: %s", e.what());
               std::cout << e.what() << "\n";
-          }
-        }else {
-          try {
-            cv_ptr = cv_bridge::toCvCopy(msg, sensor_msgs::image_encodings::BGR8);
-            if (!do_resize)
-                cv_ptr->image.copyTo(capture_image);
-            else
-                cv::resize(cv_ptr->image, capture_image, new_size);
-
-            cvtColor(capture_image, capture_gray, CV_BGR2GRAY);
-            d_frame_0.upload(prev_gray);
-            d_frame_1.upload(capture_gray);
-
-            switch(hashit(type)){
-                case farn: {
-                    alg_farn(d_frame_0, d_frame_1, d_flow_x, d_flow_y);
-                    break;
-                }
-                case tvl1: {
-                    alg_tvl1(d_frame_0, d_frame_1, d_flow_x, d_flow_y);
-                    break;
-                }
-                case brox: {
-                    GpuMat d_buf_0, d_buf_1;
-                    d_frame_0.convertTo(d_buf_0, CV_32F, 1.0 / 255.0);
-                    d_frame_1.convertTo(d_buf_1, CV_32F, 1.0 / 255.0);
-                    alg_brox(d_buf_0, d_buf_1, d_flow_x, d_flow_y);
-                    break;
-                }
-                default:
-                    ROS_ERROR("Unknown optical method: %s",type.c_str());
             }
+        }
+      else
+      {
+          try
+            {
+              cv_ptr = cv_bridge::toCvCopy(msg, sensor_msgs::image_encodings::BGR8);
+              if (!do_resize)
+                  cv_ptr->image.copyTo(capture_image);
+              else
+                  cv::resize(cv_ptr->image, capture_image, new_size);
 
-						//TO enable these guys I will have to figure out how the queue works!
-            //prefetch while gpu is working
-            //bool hasnext = true;
-            //for(int s = 0; s < step; ++s){
-              //  video_stream >> cv_ptr->image;
-						//cv_ptr = cv_bridge::toCvCopy(msg, sensor_msgs::image_encodings::BGR8);
-            bool hasnext = !cv_ptr->image.empty();
-                // read frames until end
-            //}
+              cvtColor(capture_image, capture_gray, CV_BGR2GRAY);
+              d_frame_0.upload(prev_gray);
+              d_frame_1.upload(capture_gray);
 
-            //get back flow map
-            d_flow_x.download(flow_x);
-            d_flow_y.download(flow_y);
+              switch(hashit(type)){
+                  case farn: {
+                      alg_farn(d_frame_0, d_frame_1, d_flow_x, d_flow_y);
+                      break;
+                  }
+                  case tvl1: {
+                      alg_tvl1(d_frame_0, d_frame_1, d_flow_x, d_flow_y);
+                      break;
+                  }
+                  case brox: {
+                      GpuMat d_buf_0, d_buf_1;
+                      d_frame_0.convertTo(d_buf_0, CV_32F, 1.0 / 255.0);
+                      d_frame_1.convertTo(d_buf_1, CV_32F, 1.0 / 255.0);
+                      alg_brox(d_buf_0, d_buf_1, d_flow_x, d_flow_y);
+                      break;
+                  }
+                  default:
+                      ROS_ERROR("Unknown optical method: %s",type.c_str());
+              }
 
-						//this is probably wrong and super slow
-						sensor_msgs::ImagePtr msgi = cv_bridge::CvImage(std_msgs::Header(), "bgr8", capture_image).toImageMsg();
-						pub.publish(msgi);
+  						//TO enable these guys I will have to figure out how the queue works!
+              //prefetch while gpu is working
+              //bool hasnext = true;
+              //for(int s = 0; s < step; ++s){
+                //  video_stream >> cv_ptr->image;
+  						//cv_ptr = cv_bridge::toCvCopy(msg, sensor_msgs::image_encodings::BGR8);
+              bool hasnext = !cv_ptr->image.empty();
+                  // read frames until end
+              //}
 
-            convertFlowToImage(flow_x, flow_y, flow_img_x, flow_img_y,
-                               -bound, bound);
+              //get back flow map
+              d_flow_x.download(flow_x);
+              d_flow_y.download(flow_y);
 
-						sensor_msgs::ImagePtr msgx = cv_bridge::CvImage(std_msgs::Header(), "mono8", flow_x).toImageMsg();
-						pubx.publish(msgx);
-						sensor_msgs::ImagePtr msgy = cv_bridge::CvImage(std_msgs::Header(), "mono8", flow_y).toImageMsg();
-						puby.publish(msgy);
-						 //ros::Rate loop_rate(5);
-						 //while (nh.ok()) {
-							 //pub.publish(msg);
-						//	 ros::spinOnce();
-							// loop_rate.sleep();
-						 //}
-						if (save_images){
-	            vector<uchar> str_x, str_y, str_img;
-	            encodeFlowMap(flow_x, flow_y, str_x, str_y, bound);
-	            imencode(".jpg", capture_image, str_img);
+  						//this is probably wrong and super slow
+  						sensor_msgs::ImagePtr msgi = cv_bridge::CvImage(std_msgs::Header(), "bgr8", capture_image).toImageMsg();
+  						pub.publish(msgi);
 
-	            output_x.push_back(str_x);
-	            output_y.push_back(str_y);
-	            output_img.push_back(str_img);
-						}
-            std::swap(prev_gray, capture_gray);
-            std::swap(prev_image, capture_image);
+              convertFlowToImage(flow_x, flow_y, flow_img_x, flow_img_y,
+                                 -bound, bound);
 
-            if (!hasnext){
-                return;
-            }
+  						sensor_msgs::ImagePtr msgx = cv_bridge::CvImage(std_msgs::Header(), "mono8", flow_x).toImageMsg();
+  						pubx.publish(msgx);
+  						sensor_msgs::ImagePtr msgy = cv_bridge::CvImage(std_msgs::Header(), "mono8", flow_y).toImageMsg();
+  						puby.publish(msgy);
+  						 //ros::Rate loop_rate(5);
+  						 //while (nh.ok()) {
+  							 //pub.publish(msg);
+  						//	 ros::spinOnce();
+  							// loop_rate.sleep();
+  						 //}
+  						if (save_images){
+  	            vector<uchar> str_x, str_y, str_img;
+  	            encodeFlowMap(flow_x, flow_y, str_x, str_y, bound);
+  	            imencode(".jpg", capture_image, str_img);
+
+  	            output_x.push_back(str_x);
+  	            output_y.push_back(str_y);
+  	            output_img.push_back(str_img);
+  						}
+              std::swap(prev_gray, capture_gray);
+              std::swap(prev_image, capture_image);
+
+              if (!hasnext){
+                  return;
+              }
 	    //ros::spinOnce();
         }
-      }
-    catch(const std::exception &e) {
+      catch(const std::exception &e) {
         ROS_ERROR("ERROR while running loop: %s", e.what());
         std::cout << e.what() << "\n";
-    }
+      }
 
 
     }
+  }
