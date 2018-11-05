@@ -88,7 +88,7 @@ int main(int argc, char** argv){
 
   std::string readtopic;
 	image_transport::ImageTransport it(nh);
-  nh.param("read_topic", readtopic, std::string("videofiles/image"));
+  nh.param("read_topic", readtopic, std::string("/videofiles/image_raw"));
   ROS_INFO(readtopic.c_str());
 	image_transport::Subscriber sub = it.subscribe(readtopic, 1, rosCalcDenseFlowGPU); //probably i should go for a different nodehandle here without the ~ or use the remap thing
 	new_size.width = new_width;

@@ -12,5 +12,6 @@
     <param name="new_height" value="340"/>
 	  <param name="new_width" value="256"/>
     <param name="save_images" value="true"/>
+    <param name="read_topic" value="/videofiles/image_raw"/>
   </node>
 </launch>
