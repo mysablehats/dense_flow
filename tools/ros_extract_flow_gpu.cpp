@@ -64,7 +64,7 @@ bool initialized = false;
 
 int main(int argc, char** argv){
 
-	ros::init(argc, argv, "df_publisher");//, ros::init_options::AnonymousName);
+	ros::init(argc, argv, "df_publisher", ros::init_options::AnonymousName);
 
 	ros::NodeHandle nh;
 	ros::NodeHandle local_nh("~");
@@ -89,16 +89,16 @@ int main(int argc, char** argv){
   std::string readtopic;
 	image_transport::ImageTransport it(nh);
   nh.param("read_topic", readtopic, std::string("/videofiles/image_raw"));
-  ROS_INFO(readtopic.c_str());
+  ROS_INFO("Reading topic: %s",readtopic.c_str());
 	image_transport::Subscriber sub = it.subscribe(readtopic, 1, rosCalcDenseFlowGPU); //probably i should go for a different nodehandle here without the ~ or use the remap thing
 	new_size.width = new_width;
 	new_size.height = new_height;
 	do_resize = (new_height > 0) && (new_width > 0);
 	setDevice(dev_id);
-	ROS_INFO("Defined everything ready to acquire.");
-	ros::spin();
+  ROS_INFO("Defined everything ready to acquire.");
+  ros::spin();
 
-	if(save_images){
+  if(save_images){
 		writeImages(output_x, xFlowFile);
 		writeImages(output_y, yFlowFile);
 		writeImages(output_img, imgFile);
@@ -108,7 +108,7 @@ int main(int argc, char** argv){
 }
 
 void rosCalcDenseFlowGPU(const sensor_msgs::ImageConstPtr& msg){
-	ROS_INFO("Callback was called.");
+	ROS_INFO_STREAM("Callback was called.");
         if (!initialized){
 	ROS_INFO("Initializing...");
 						cv_ptr = cv_bridge::toCvCopy(msg, sensor_msgs::image_encodings::BGR8);
