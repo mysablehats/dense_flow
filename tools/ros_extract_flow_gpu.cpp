@@ -13,7 +13,6 @@
 #include "algtype.h"
 using namespace cv::gpu;
 //using namespace cv;
-#define CAST(v, L, H) ((v) > (H) ? 255 : (v) < (L) ? 0 : cvRound(255*((v) - (L))/((H)-(L))))
 
 void rosCalcDenseFlowGPU(const sensor_msgs::ImageConstPtr& msg);
 
@@ -199,14 +198,13 @@ void rosCalcDenseFlowGPU(const sensor_msgs::ImageConstPtr& msg){
   						//this is probably wrong and super slow
   						sensor_msgs::ImagePtr msgi = cv_bridge::CvImage(std_msgs::Header(), "bgr8", capture_image).toImageMsg();
   						pub.publish(msgi);
-              ROS_INFO("got this far.");
 
-              flow_x.convertTo(flow_img_x, CV_8UC1);
-              flow_y.convertTo(flow_img_y, CV_8UC1);
+
+              //need to normalize them as well!
+              flow_x.convertTo(flow_img_x, CV_8UC1, bound);
+              flow_y.convertTo(flow_img_y, CV_8UC1, bound);
               //convertFlowToImage(flow_x, flow_y, flow_img_x, flow_img_y,
 //                                 -bound, bound);
-              ROS_INFO("did this!");
-
   						sensor_msgs::ImagePtr msgx = cv_bridge::CvImage(std_msgs::Header(), "mono8",flow_img_x).toImageMsg();
   						pubx.publish(msgx);
   						sensor_msgs::ImagePtr msgy = cv_bridge::CvImage(std_msgs::Header(), "mono8",flow_img_y).toImageMsg();
@@ -242,4 +240,3 @@ void rosCalcDenseFlowGPU(const sensor_msgs::ImageConstPtr& msg){
 
     }
   }
-                #undef CAST
