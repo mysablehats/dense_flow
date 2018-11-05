@@ -83,15 +83,15 @@ int main(int argc, char** argv){
 	local_nh.param("save_images", save_images, true);
 
 	image_transport::ImageTransport local_it(local_nh);
-	pub = local_it.advertise("camera/image", 1);
-	pubx = local_it.advertise("camera/flowx", 1);
-	puby = local_it.advertise("camera/flowy", 1);
+	pub = local_it.advertise("image", 1);
+	pubx = local_it.advertise("flow_x", 1);
+	puby = local_it.advertise("flow_y", 1);
 
   std::string readtopic;
 	image_transport::ImageTransport it(nh);
   nh.param("read_topic", readtopic, std::string("/videofiles/image_raw"));
   ROS_INFO("Reading topic: %s",readtopic.c_str());
-	image_transport::Subscriber sub = it.subscribe(readtopic, 1, rosCalcDenseFlowGPU); //probably i should go for a different nodehandle here without the ~ or use the remap thing
+	image_transport::Subscriber sub = it.subscribe(readtopic, step, rosCalcDenseFlowGPU); //probably i should go for a different nodehandle here without the ~ or use the remap thing
 	new_size.width = new_width;
 	new_size.height = new_height;
 	do_resize = (new_height > 0) && (new_width > 0);
@@ -109,15 +109,13 @@ int main(int argc, char** argv){
 }
 
 void rosCalcDenseFlowGPU(const sensor_msgs::ImageConstPtr& msg){
-	//ROS_INFO_STREAM("Callback was called.");
         if (!initialized)
         {
         	ROS_INFO("Initializing...");
           try
             {
               cv_ptr = cv_bridge::toCvCopy(msg, sensor_msgs::image_encodings::BGR8);
-             //video_stream >> capture_frame;
-             if (cv_ptr->image.empty()) return; // read frames until end
+              if (cv_ptr->image.empty()) return; // if the image is empty, return and do not initialize
 
               if (!do_resize){
                   initializeMats(cv_ptr->image, capture_image, capture_gray,
@@ -132,10 +130,9 @@ void rosCalcDenseFlowGPU(const sensor_msgs::ImageConstPtr& msg){
               }
               cvtColor(prev_image, prev_gray, CV_BGR2GRAY);
               initialized = true;
-              //for(int s = 0; s < step; ++s){
-              //    video_stream >> cv_ptr->image;
-              //    if (cv_ptr->image.empty()) return; // read frames until end
-              //}
+              for(int s = 0; s < step; ++s){
+                cv_ptr = cv_bridge::toCvCopy(msg, sensor_msgs::image_encodings::BGR8);
+              }
               ROS_INFO("Attempting to create flow matrices");
               flow_img_x.create(flow_x.size(), CV_8UC1);
               flow_img_y.create(flow_y.size(), CV_8UC1);
@@ -151,7 +148,6 @@ void rosCalcDenseFlowGPU(const sensor_msgs::ImageConstPtr& msg){
       {
           try
             {
-              cv_ptr = cv_bridge::toCvCopy(msg, sensor_msgs::image_encodings::BGR8);
               if (!do_resize)
                   cv_ptr->image.copyTo(capture_image);
               else
@@ -181,24 +177,19 @@ void rosCalcDenseFlowGPU(const sensor_msgs::ImageConstPtr& msg){
                       ROS_ERROR("Unknown optical method: %s",type.c_str());
               }
 
-  						//TO enable these guys I will have to figure out how the queue works!
               //prefetch while gpu is working
-              //bool hasnext = true;
-              //for(int s = 0; s < step; ++s){
-                //  video_stream >> cv_ptr->image;
-  						//cv_ptr = cv_bridge::toCvCopy(msg, sensor_msgs::image_encodings::BGR8);
-              bool hasnext = !cv_ptr->image.empty();
-                  // read frames until end
-              //}
+              bool hasnext = true;
+              for(int s = 0; s < step; ++s){
+                cv_ptr = cv_bridge::toCvCopy(msg, sensor_msgs::image_encodings::BGR8);
+                hasnext = !cv_ptr->image.empty();        // read frames until end
+              }
 
               //get back flow map
               d_flow_x.download(flow_x);
               d_flow_y.download(flow_y);
 
-  						//this is probably wrong and super slow
   						sensor_msgs::ImagePtr msgi = cv_bridge::CvImage(std_msgs::Header(), "bgr8", capture_image).toImageMsg();
   						pub.publish(msgi);
-
 
               //need to normalize them as well!
               flow_x.convertTo(flow_img_x, CV_8UC1, bound);
@@ -209,12 +200,7 @@ void rosCalcDenseFlowGPU(const sensor_msgs::ImageConstPtr& msg){
   						pubx.publish(msgx);
   						sensor_msgs::ImagePtr msgy = cv_bridge::CvImage(std_msgs::Header(), "mono8",flow_img_y).toImageMsg();
   						puby.publish(msgy);
-  						 //ros::Rate loop_rate(5);
-  						 //while (nh.ok()) {
-  							 //pub.publish(msg);
-  						//	 ros::spinOnce();
-  							// loop_rate.sleep();
-  						 //}
+
   						if (save_images){
   	            vector<uchar> str_x, str_y, str_img;
   	            encodeFlowMap(flow_x, flow_y, str_x, str_y, bound);
@@ -230,13 +216,11 @@ void rosCalcDenseFlowGPU(const sensor_msgs::ImageConstPtr& msg){
               if (!hasnext){
                   return;
               }
-	    //ros::spinOnce();
+
         }
       catch(const std::exception &e) {
         ROS_ERROR("ERROR while running loop: %s", e.what());
         std::cout << e.what() << "\n";
-      }
-
-
+        }
     }
   }
