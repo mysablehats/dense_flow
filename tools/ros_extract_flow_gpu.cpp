@@ -177,8 +177,8 @@ void rosCalcDenseFlowGPU(const sensor_msgs::ImageConstPtr& msg){
             d_flow_y.download(flow_y);
 
 						//this is probably wrong and super slow
-						sensor_msgs::ImagePtr msg = cv_bridge::CvImage(std_msgs::Header(), "bgr8", capture_image).toImageMsg();
-						pub.publish(msg);
+						sensor_msgs::ImagePtr msgi = cv_bridge::CvImage(std_msgs::Header(), "bgr8", capture_image).toImageMsg();
+						pub.publish(msgi);
 						sensor_msgs::ImagePtr msgx = cv_bridge::CvImage(std_msgs::Header(), "mono8", flow_x).toImageMsg();
 						pubx.publish(msgx);
 						sensor_msgs::ImagePtr msgy = cv_bridge::CvImage(std_msgs::Header(), "mono8", flow_y).toImageMsg();
