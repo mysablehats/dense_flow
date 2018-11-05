@@ -86,8 +86,11 @@ int main(int argc, char** argv){
 	pubx = local_it.advertise("camera/flowx", 1);
 	puby = local_it.advertise("camera/flowy", 1);
 
+  std::string readtopic;
 	image_transport::ImageTransport it(nh);
-	image_transport::Subscriber sub = it.subscribe("videofiles/image", 1, rosCalcDenseFlowGPU); //probably i should go for a different nodehandle here without the ~ or use the remap thing
+  nh.param("read_topic", readtopic, "videofiles/image");
+  ROS_INFO(readtopic.c_str());
+	image_transport::Subscriber sub = it.subscribe(readtopic, 1, rosCalcDenseFlowGPU); //probably i should go for a different nodehandle here without the ~ or use the remap thing
 	new_size.width = new_width;
 	new_size.height = new_height;
 	do_resize = (new_height > 0) && (new_width > 0);
