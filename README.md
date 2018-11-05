@@ -1,6 +1,6 @@
 #### ROS wrapper for dense_flow.
 
-work in progress.
+work in progress..
 
 #### TODO:
 
@@ -9,7 +9,7 @@ work in progress.
 - add delay republisher - either as a moving topic (fifo list of N topics) or as a oneshiftdown every frame (this needs to be timed. first idea must be faster, but writting the modules to read it might slow down overall performance and ros might be smart and do pointers to publish, making idea 2 not that much slower)
 - do logging with ros, remove easylogging.
 - also CLUE seems not to be used at all, remove that and test
-- remove matlab and python wrappers as well: the interface is with ros: matlab can read rostopics as well as python. 
+- remove matlab and python wrappers as well: the interface is with ros: matlab can read rostopics as well as python.
 
 
 
