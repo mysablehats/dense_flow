@@ -108,7 +108,7 @@ int main(int argc, char** argv){
 }
 
 void rosCalcDenseFlowGPU(const sensor_msgs::ImageConstPtr& msg){
-	ROS_INFO_STREAM("Callback was called.");
+	//ROS_INFO_STREAM("Callback was called.");
         if (!initialized){
 	ROS_INFO("Initializing...");
 						cv_ptr = cv_bridge::toCvCopy(msg, sensor_msgs::image_encodings::BGR8);
@@ -179,9 +179,9 @@ void rosCalcDenseFlowGPU(const sensor_msgs::ImageConstPtr& msg){
 						//this is probably wrong and super slow
 						sensor_msgs::ImagePtr msgi = cv_bridge::CvImage(std_msgs::Header(), "bgr8", capture_image).toImageMsg();
 						pub.publish(msgi);
-						sensor_msgs::ImagePtr msgx = cv_bridge::CvImage(std_msgs::Header(), "mono8", flow_x).toImageMsg();
+						sensor_msgs::ImagePtr msgx = cv_bridge::CvImage(std_msgs::Header(), "bgr8", flow_x).toImageMsg();
 						pubx.publish(msgx);
-						sensor_msgs::ImagePtr msgy = cv_bridge::CvImage(std_msgs::Header(), "mono8", flow_y).toImageMsg();
+						sensor_msgs::ImagePtr msgy = cv_bridge::CvImage(std_msgs::Header(), "bgr8", flow_y).toImageMsg();
 						puby.publish(msgy);
 						 //ros::Rate loop_rate(5);
 						 //while (nh.ok()) {
