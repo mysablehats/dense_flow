@@ -136,9 +136,10 @@ void rosCalcDenseFlowGPU(const sensor_msgs::ImageConstPtr& msg){
               //    video_stream >> cv_ptr->image;
               //    if (cv_ptr->image.empty()) return; // read frames until end
               //}
-
-              //Mat flow_img_x(flow_x.size(), CV_8UC1);
-              //Mat flow_img_y(flow_y.size(), CV_8UC1);
+              ROS_INFO("Attempting to create flow matrices");
+              flow_img_x.create(flow_x.size(), CV_8UC1);
+              flow_img_y.create(flow_y.size(), CV_8UC1);
+              ROS_INFO("Flow matrices created!");
             }
         catch(const std::exception &e)
             {
