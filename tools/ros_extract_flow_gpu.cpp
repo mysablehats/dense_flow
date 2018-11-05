@@ -42,7 +42,8 @@ image_transport::Publisher pub;
 image_transport::Publisher pubx;
 image_transport::Publisher puby;
 
-using namespace cv::gpu;
+Mat flow_img_x;
+Mat flow_img_y;
 
 vector<vector<uchar> > output_x, output_y, output_img;
 
