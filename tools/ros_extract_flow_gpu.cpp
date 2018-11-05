@@ -134,8 +134,8 @@ void rosCalcDenseFlowGPU(const sensor_msgs::ImageConstPtr& msg){
             //    if (cv_ptr->image.empty()) return; // read frames until end
             //}
 
-            Mat flow_img_x(flow_x.size(), CV_8UC1);
-            Mat flow_img_y(flow_y.size(), CV_8UC1);
+            //Mat flow_img_x(flow_x.size(), CV_8UC1);
+            //Mat flow_img_y(flow_y.size(), CV_8UC1);
         }else {
             cv_ptr = cv_bridge::toCvCopy(msg, sensor_msgs::image_encodings::BGR8);
             if (!do_resize)
