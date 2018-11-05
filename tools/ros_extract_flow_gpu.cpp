@@ -201,22 +201,15 @@ void rosCalcDenseFlowGPU(const sensor_msgs::ImageConstPtr& msg){
   						pub.publish(msgi);
               ROS_INFO("got this far.");
 
-                  for (int i = 0; i < flow_x.rows; ++i) {
-                      for (int j = 0; j < flow_y.cols; ++j) {
-                          float x = flow_x.at<float>(i,j);
-                          float y = flow_y.at<float>(i,j);
-                          flow_img_x.at<uchar>(i,j) = CAST(x, -bound, bound);
-                          flow_img_y.at<uchar>(i,j) = CAST(y, -bound, bound);
-                      }
-                  }
-
+              flow_x.convertTo(flow_img_x, CV_8UC1);
+              flow_y.convertTo(flow_img_y, CV_8UC1);
               //convertFlowToImage(flow_x, flow_y, flow_img_x, flow_img_y,
 //                                 -bound, bound);
               ROS_INFO("did this!");
 
-  						sensor_msgs::ImagePtr msgx = cv_bridge::CvImage(std_msgs::Header(), "mono8", flow_x).toImageMsg();
+  						sensor_msgs::ImagePtr msgx = cv_bridge::CvImage(std_msgs::Header(), "mono8",flow_img_x).toImageMsg();
   						pubx.publish(msgx);
-  						sensor_msgs::ImagePtr msgy = cv_bridge::CvImage(std_msgs::Header(), "mono8", flow_y).toImageMsg();
+  						sensor_msgs::ImagePtr msgy = cv_bridge::CvImage(std_msgs::Header(), "mono8",flow_img_y).toImageMsg();
   						puby.publish(msgy);
   						 //ros::Rate loop_rate(5);
   						 //while (nh.ok()) {
