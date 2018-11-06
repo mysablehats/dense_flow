@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <launch>
-  <node name="df_extract_gpu" pkg="dense_flow" type="ros_extract_gpu" respawn="false" output="screen">
-    <!--param name="vidFile" value="/dense_flow/MWG_Bodenturnen_somersault_f_cm_np1_ri_bad_4.avi"/-->
+  <node name="ros_extract_gpu_NN" pkg="dense_flow" type="ros_extract_gpu" respawn="false" output="screen">
+    <param name="vidFile" value="/dense_flow/MWG_Bodenturnen_somersault_f_cm_np1_ri_bad_4.avi"/>
     <param name="xFlowFile" value="/dense_flow/flow_x"/>
     <param name="yFlowFile" value="/dense_flow/flow_y"/>
     <param name="imgFile" value="/dense_flow/img"/>
@@ -9,9 +9,8 @@
     <param name="type" value="tvl1"/> <!-- farn, tvl1, brox -->
 	  <param name="device_id" value="0"/>
     <param name="step" value="1"/>
-    <param name="new_height" value="256"/>
-	  <param name="new_width" value="340"/>
+    <param name="new_height" value="340"/>
+	  <param name="new_width" value="256"/>
     <param name="save_images" value="true"/>
-    <param name="read_topic" value="/videofiles/image_raw"/>
   </node>
 </launch>

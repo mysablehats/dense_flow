@@ -5,7 +5,11 @@ project( dense_flow )
 catkin_package()
 
 find_package(catkin REQUIRED COMPONENTS
- roscpp
+    cv_bridge
+    image_transport
+    message_filters
+    message_generation
+    roscpp
  )
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/Modules/")
@@ -28,29 +32,35 @@ find_package( OpenCV REQUIRED )
 FIND_PACKAGE(Boost REQUIRED python)
 FIND_PACKAGE(PythonLibs REQUIRED)
 
-include_directories( ${OpenCV_INCLUDE_DIRS} include/ include/easylogging++/src include/CLUE/include ${catkin_INCLUDE_DIRS})
+include_directories( ${OpenCV_INCLUDE_DIRS} include/ ${catkin_INCLUDE_DIRS})
 include_directories(SYSTEM ${Boost_INCLUDE_DIR} ${PYTHON_INCLUDE_DIR})
 
-add_library(denseflow src/common.cpp src/dense_flow.cpp src/dense_flow_gpu.cpp src/dense_warp_flow_gpu.cpp )
-target_link_libraries( denseflow ${OpenCV_LIBS} )
+add_library(denseflow src/common.cpp )
 
-add_library(pydenseflow SHARED src/py_denseflow.cpp)
-target_link_libraries(pydenseflow
-        denseflow
-        ${Boost_LIBRARIES} ${PYTHON_LIBRARIES} ${OpenCV_LIBS}
-        )
+#src/dense_flow.cpp src/dense_flow_gpu.cpp src/dense_warp_flow_gpu.cpp )
 
-add_executable( extract_cpu tools/extract_flow.cpp)
-target_link_libraries( extract_cpu ${OpenCV_LIBS} denseflow)
+#target_link_libraries( denseflow ${OpenCV_LIBS} )
 
-add_executable( extract_gpu tools/extract_flow_gpu.cpp)
-target_link_libraries( extract_gpu ${OpenCV_LIBS} denseflow)
+#add_library(denseflow src/common.cpp src/dense_flow.cpp src/dense_flow_gpu.cpp src/dense_warp_flow_gpu.cpp )
+#target_link_libraries( denseflow ${OpenCV_LIBS} )
 
-add_executable( extract_warp_gpu tools/extract_warp_flow_gpu.cpp)
-target_link_libraries( extract_warp_gpu ${OpenCV_LIBS}  denseflow)
+#add_library(pydenseflow SHARED src/py_denseflow.cpp)
+#target_link_libraries(pydenseflow
+        #denseflow
+        #${Boost_LIBRARIES} ${PYTHON_LIBRARIES} ${OpenCV_LIBS}
+        #)
+
+#add_executable( extract_cpu tools/extract_flow.cpp)
+#target_link_libraries( extract_cpu ${OpenCV_LIBS} denseflow)
+
+#add_executable( extract_gpu tools/extract_flow_gpu.cpp)
+#target_link_libraries( extract_gpu ${OpenCV_LIBS} denseflow)
+
+#add_executable( extract_warp_gpu tools/extract_warp_flow_gpu.cpp)
+#target_link_libraries( extract_warp_gpu ${OpenCV_LIBS}  denseflow)
 
 
 #### ros versions:
 
 add_executable( ros_extract_gpu tools/ros_extract_flow_gpu.cpp)
-target_link_libraries( ros_extract_gpu ${OpenCV_LIBS} denseflow ${catkin_LIBRARIES})
+target_link_libraries( ros_extract_gpu ${OpenCV_LIBS} ${catkin_LIBRARIES} denseflow)
