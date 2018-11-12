@@ -4,13 +4,13 @@ work in progress..
 
 #### TODO:
 
--add arg parameters as ros parameters
--republish flow as stream
-- add delay republisher - either as a moving topic (fifo list of N topics) or as a oneshiftdown every frame (this needs to be timed. first idea must be faster, but writting the modules to read it might slow down overall performance and ros might be smart and do pointers to publish, making idea 2 not that much slower)
-- do logging with ros, remove easylogging.
+- remove easylogging.
 - also CLUE seems not to be used at all, remove that and test
 - remove matlab and python wrappers as well: the interface is with ros: matlab can read rostopics as well as python.
-
+- make same modifications to warp flow, cpu flow
+- remove/ fix saving of images (not functional with the many videos stream)
+- fix the change video image transition error
+- fix the normalization function (the CAST compiler def was not working and you changed for something else that does not make the same kinds of images - they used to look much grayer so the trained network might not work)
 
 
 
