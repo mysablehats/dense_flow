@@ -3,21 +3,13 @@ project( dense_flow )
 
 
 catkin_package()
-
 find_package(catkin REQUIRED COMPONENTS
-    image_transport
-    message_filters
-    message_generation
-    roscpp
- )
-
-# find_package(catkin REQUIRED COMPONENTS
-#     cv_bridge
-#     image_transport
-#     message_filters
-#     message_generation
-#     roscpp
-#  )
+     cv_bridge
+     image_transport
+     message_filters
+     message_generation
+     roscpp
+  )
 
 
 
