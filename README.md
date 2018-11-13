@@ -4,17 +4,11 @@ Extracting dense flow field given a video and publish it as a topic.
 
 work in progress..
 
-#### TODO:
+#### Before running, set up networking 
 
-- make same modifications to warp flow, cpu flow
-- remove/ fix saving of images (not functional with the many videos stream)
-- fix the change video image transition error
-- fix the normalization function (the CAST compiler def was not working and you changed for something else that does not make the same kinds of images - they used to look much grayer so the trained network might not work)
-- fix bug during execution when we don't have output for quite a while (I believe it is a jit compiler issue, but I am not sure). At least have it should error until the publisher actually starts doing its thing
+You need to setup ros networking well with ros and docker (see http://wiki.ros.org/ROS/NetworkSetup and https://docs.docker.com/config/containers/container-networking/). 
 
-#### running
-
-you need to setup ros networking well with ros and docker. easier said than done; make sure hosts are visible to each other and present with their correct hostname on their respective /etc/hosts file (on the docker pc and roscore pc). I am not using docker compose, so you will need to set the right addresses in the entrypoint scripts of each docker container as well.
+Easier said than done; make sure hosts are visible to each other and present with their correct hostname on their respective /etc/hosts file (on the docker pc and roscore pc). I am not using docker compose, so you will need to set the right addresses in the entrypoint scripts of each docker container as well.
 
 Also, the roscore (in my case hostname:SATELLITE-S50-B; ip4:10.0.0.239) needs to forward packages to the docker network (which runs somewhere). In my case the docker pc has ip 10.0.0.7 and is connected to my physical network via interface enp8s0, so this network rule becomes:
 
@@ -26,8 +20,23 @@ By default docker does not forward packages outside of the pc in which it is run
     
 After this initial setup is all done, you need to run this package from the respective docker container (see https://github.com/mysablehats/dt.git). It should have been compiled by catkin_make already, so nothing to do here. 
 
-Source the devel/setup.bash file from the catkin_ws directory and run:
+
+#### Running
+
+As mentioned before I never meant for this package to be used outside of a docker container. So please checkout https://github.com/mysablehats/dt.git build the docker image and run that instead. 
+
+However, it should also work outside of this; I suppose. 
+
+Source the devel/setup.bash file from the catkin_ws directory, make sure you have the correct address for your roscore (if running on multiple machines) and run:
 
     roslaunch dense_flow df.launch
     
-Now, there is a slight bug here still of this date in which the correct cuda code was not generated. I have no idea how to fix this yet, so until the jit compiler fixes that we won't have any output. You can fork the roslaunch to the background and use rostopic hz /extract_gpu/image to check when it will start to publish. 
+Now, there is a slight bug here still of this date in which the correct cuda code was not generated. I have no idea how to fix this yet, so until the jit compiler fixes that we won't have any output ( think this is a jit comp. issue because it only happens the first time you run it). You can fork the roslaunch to the background and use rostopic hz /extract_gpu/image to check when it will start to publish. 
+
+#### TODO:
+
+- make same modifications to warp flow, cpu flow
+- remove/ fix saving of images (not functional with the many videos stream)
+- fix the change video image transition error
+- fix the normalization function (the CAST compiler def was not working and you changed for something else that does not make the same kinds of images - they used to look much grayer so the trained network might not work)
+- fix bug during execution when we don't have output for quite a while (I believe it is a jit compiler issue, but I am not sure). At least have it should error until the publisher actually starts doing its thing
