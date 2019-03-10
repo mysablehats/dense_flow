@@ -17,6 +17,10 @@ using namespace cv;
 
 void convertFlowToImage(const Mat &flow_x, const Mat &flow_y, Mat &img_x, Mat &img_y,
                         double lowerBound, double higherBound);
+
+void convertFlowToImage_fred(const Mat &flow_x, const Mat &flow_y, Mat &img_x, Mat &img_y,
+                        double lowerBound, double higherBound);
+
 void drawOptFlowMap(const Mat& flow, Mat& cflowmap, int step,double, const Scalar& color);
 
 void encodeFlowMap(const Mat& flow_map_x, const Mat& flow_map_y,
@@ -36,4 +40,3 @@ inline void initializeMats(const Mat& frame,
 void writeImages(vector<vector<uchar>> images, string name_temp);
 
 #endif //DENSEFLOW_COMMON_H_H
-

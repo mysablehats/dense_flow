@@ -18,6 +18,34 @@ void convertFlowToImage(const Mat &flow_x, const Mat &flow_y, Mat &img_x, Mat &i
 #undef CAST
 }
 
+inline uchar conv(float v, double L, double H)
+{
+  if (v > H)
+  {
+    return 255 ;
+  }
+  else if (v < L)
+  {
+    return 0;
+  }
+  else
+  {
+    return (uchar)cvRound(255*(v + L)/(H-L));
+  }
+}
+
+void convertFlowToImage_fred(const Mat &flow_x, const Mat &flow_y, Mat &img_x, Mat &img_y,
+                               double lowerBound, double higherBound) {
+    for (int i = 0; i < flow_x.rows; ++i) {
+        for (int j = 0; j < flow_y.cols; ++j) {
+            float x = flow_x.at<float>(i,j);
+            float y = flow_y.at<float>(i,j);
+            img_x.at<uchar>(i,j) = conv(x, lowerBound, higherBound);
+            img_y.at<uchar>(i,j) = conv(y, lowerBound, higherBound);
+        }
+    }
+}
+
 void drawOptFlowMap(const Mat& flow, Mat& cflowmap, int step,double, const Scalar& color){
     for(int y = 0; y < cflowmap.rows; y += step)
         for(int x = 0; x < cflowmap.cols; x += step)
@@ -59,4 +87,3 @@ void writeImages(vector<vector<uchar>> images, string name_temp){
         fclose(fp);
     }
 }
-

@@ -1,4 +1,5 @@
 #include <ros/ros.h>
+#include <ros/console.h>
 //#include "dense_flow.h"
 #include "common.h"
 #include "opencv2/gpu/gpu.hpp"
@@ -66,7 +67,7 @@ bool initialized = false;
 int main(int argc, char** argv){
 
 	ros::init(argc, argv, "df_publisher", ros::init_options::AnonymousName);
-
+  ROS_DEBUG("df node started. will try to load parameters and startup stuff. ");
 	ros::NodeHandle nh;
 	ros::NodeHandle local_nh("~");
 
@@ -81,17 +82,19 @@ int main(int argc, char** argv){
 	local_nh.param("new_height", new_height, 0);
 	local_nh.param("new_width", new_width, 0);
 	local_nh.param("save_images", save_images, true);
+  std::string readtopic;
+  local_nh.param("read_topic", readtopic, std::string("/videofiles/image_raw"));
 
 	image_transport::ImageTransport local_it(local_nh);
 	pub = local_it.advertise("image", 1);
 	pubx = local_it.advertise("flow_x", 1);
 	puby = local_it.advertise("flow_y", 1);
 
-  std::string readtopic;
+
 	image_transport::ImageTransport it(nh);
-  nh.param("read_topic", readtopic, std::string("/videofiles/image_raw"));
+
   ROS_INFO("Reading topic: %s",readtopic.c_str());
-	image_transport::Subscriber sub = it.subscribe(readtopic, step, rosCalcDenseFlowGPU); //probably i should go for a different nodehandle here without the ~ or use the remap thing
+	image_transport::Subscriber sub = it.subscribe(readtopic, step, rosCalcDenseFlowGPU); //i was nuts, why did i put step here?
 	new_size.width = new_width;
 	new_size.height = new_height;
 	do_resize = (new_height > 0) && (new_width > 0);
@@ -109,7 +112,7 @@ int main(int argc, char** argv){
 }
 
 void rosCalcDenseFlowGPU(const sensor_msgs::ImageConstPtr& msg){
-        if (!initialized)
+        if (!initialized) // or if sizes of previous image and current image  are different
         {
         	ROS_INFO("Initializing...");
           try
@@ -178,6 +181,7 @@ void rosCalcDenseFlowGPU(const sensor_msgs::ImageConstPtr& msg){
               }
 
               //prefetch while gpu is working
+              //what?
               bool hasnext = true;
               for(int s = 0; s < step; ++s){
                 cv_ptr = cv_bridge::toCvCopy(msg, sensor_msgs::image_encodings::BGR8);
@@ -192,10 +196,14 @@ void rosCalcDenseFlowGPU(const sensor_msgs::ImageConstPtr& msg){
   						pub.publish(msgi);
 
               //need to normalize them as well!
-              flow_x.convertTo(flow_img_x, CV_8UC1, bound);
-              flow_y.convertTo(flow_img_y, CV_8UC1, bound);
-              //convertFlowToImage(flow_x, flow_y, flow_img_x, flow_img_y,
-//                                 -bound, bound);
+              //alpha = 255/(ubound - lbound) ; beta = 255* lbound/((ubound - lbound)
+              // but I will simplify it, because of reasons.
+              flow_x.convertTo(flow_img_x, CV_8UC1, 255/(-2*bound),255/2);
+              flow_y.convertTo(flow_img_y, CV_8UC1, 255/(-2*bound),255/2);
+              //ROS_INFO("so far so good");
+              //convertFlowToImage_fred(flow_x, flow_y, flow_img_x, flow_img_y,
+              //                   -bound, bound);
+              //there is something wrong with the cast.
   						sensor_msgs::ImagePtr msgx = cv_bridge::CvImage(std_msgs::Header(), "mono8",flow_img_x).toImageMsg();
   						pubx.publish(msgx);
   						sensor_msgs::ImagePtr msgy = cv_bridge::CvImage(std_msgs::Header(), "mono8",flow_img_y).toImageMsg();
@@ -214,6 +222,7 @@ void rosCalcDenseFlowGPU(const sensor_msgs::ImageConstPtr& msg){
               std::swap(prev_image, capture_image);
 
               if (!hasnext){
+                  ROS_WARN("I dont't have a next frame! I don't think this should happen, like ever. ");
                   return;
               }
 

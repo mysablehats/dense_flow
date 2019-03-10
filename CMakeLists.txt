@@ -65,3 +65,9 @@ add_library(denseflow src/common.cpp )
 
 add_executable( ros_extract_gpu tools/ros_extract_flow_gpu.cpp)
 target_link_libraries( ros_extract_gpu ${OpenCV_LIBS} ${catkin_LIBRARIES} denseflow)
+
+add_executable( ros_extract_gpu_nq tools/ros_extract_flow_gpu_nq.cpp)
+target_link_libraries( ros_extract_gpu_nq ${OpenCV_LIBS} ${catkin_LIBRARIES} denseflow)
+
+add_executable( flowbg tools/ros_flow_bg.cpp)
+target_link_libraries( flowbg ${OpenCV_LIBS} ${catkin_LIBRARIES} denseflow)
