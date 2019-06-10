@@ -1,5 +1,8 @@
 <?xml version="1.0"?>
+
+
 <launch>
+  <arg name="img" default="/camera/rgb/image_color"/>
   <node name="df_extract_gpu" pkg="dense_flow" type="flowbg" respawn="false" output="screen">
     <!--param name="vidFile" value="/dense_flow/MWG_Bodenturnen_somersault_f_cm_np1_ri_bad_4.avi"/-->
     <param name="xFlowFile" value="/dense_flow/flow_x"/>
@@ -12,6 +15,6 @@
     <param name="new_height" value="256"/>
 	  <param name="new_width" value="340"/>
     <param name="save_images" value="true"/>
-    <param name="read_topic" value="/camera/rgb/image_color"/>
+    <param name="read_topic" value="$(arg img)"/>
   </node>
 </launch>
